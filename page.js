@@ -7,8 +7,14 @@
             this.totalPageCount = options.totalPage;
             this.$container = $(element);
             $(element).empty();
-            this.initPagePanel(options);
             this.previousPage = 1;
+            this.options = options;
+            if(options.maxShowItem>=3){
+            	this.options.maxShowItem = options.maxShowItem||options.totalPage;
+            }else{
+            	this.options.maxShowItem = options.totalPage;
+            }
+            this.initPagePanel(options);
             var pageChangeEvent = $.Event('pageChange',{currentPage:self.currentPageIndex});
             $(element).trigger(pageChangeEvent);
         }
@@ -36,7 +42,7 @@
                 var self = this;
                 if(self.currentPageIndex == self.totalPageCount){
                     self.$container.find(".Next").addClass("disabled");
-                    self.$container.find(".Next").removeClass("disabled");
+                    self.$container.find(".Prev").removeClass("disabled");
                 }else if(self.currentPageIndex == 1){
                     self.$container.find(".Prev").addClass("disabled");
                     self.$container.find(".Next").removeClass("disabled");
@@ -44,39 +50,40 @@
                     self.$container.find(".Next").removeClass("disabled");
                     self.$container.find(".Prev").removeClass("disabled");
                 }
-                while(true){
-                	var eleStr = '<li class="pageNum"><a href="#">'+i+'</a></li>';
-                    var tempElem=$(eleStr);
-                    tempElem.data('index',i);
-                	self.$container.find(".Next").after()
-                }
-                $.proxy(this,'_draw');
+                $.proxy(this,'_draw')();
                 var pageChangeEvent = $.Event('pageChange',{currentPage:self.currentPageIndex});
                 self.$container.trigger(pageChangeEvent);
             },
             _draw:function(){
             	var self = this;
-            	var itemLeave = 5-3;
-            	var $currentItem = self.$container.find(".Next");
-            	var flag = false
-            	for(var currentDisplay=1;currentDisplay<=10;currentDisplay++){
+            	if(self.totalPageCount == 1){
+            		return ;
+            	}
+            	self.$container.find('li').not('.Next,.Prev').remove();
+            	var itemLeave = self.options.maxShowItem-3;
+            	var $currentItem = self.$container.find(".Prev");
+            	if(self.currentPageIndex == 1||self.currentPageIndex == self.totalPageCount){
+                    itemLeave++;
+                }
+            	var flag = false;
+            	for(var currentDisplay=1;currentDisplay<=self.totalPageCount;currentDisplay++){
             		if(currentDisplay !=1 && currentDisplay !=(self.currentPageIndex)&&currentDisplay!=self.totalPageCount){
                     	itemLeave --;
                     }
-                    if(itemLeave>0||currentDisplay == (self.currentPageIndex) ||currentDisplay == self.totalPageCount){
+                    if(itemLeave>=0||currentDisplay == (self.currentPageIndex) ||currentDisplay == self.totalPageCount){
                     	var eleStr = '<li class="pageNum"><a href="#">'+currentDisplay+'</a></li>';
 	                    var $tempElem=$(eleStr);
 	                    $tempElem.data('index',currentDisplay);
 	                    $currentItem.after($tempElem);
 	                    $currentItem = $tempElem;
 	                    if(currentDisplay == (self.currentPageIndex)){
-	                    	$tempElem.addClass(active);
+	                    	$tempElem.addClass('active');
 	                    	flag = false;
 	                    }
                     }else if(!flag){
-                    	var eleStr = '<li class="pageNum"><a href="#">'+'...'+'</a></li>';
+                    	var eleStr = '<li class="eclip"><a href="#">'+'...'+'</a></li>';
 	                    var $tempElem=$(eleStr);
-	                    $tempElem.data('index',currentDisplay);
+	  					$tempElem.addClass('disabled');
 	                    $currentItem.after($tempElem);
 	                    $currentItem = $tempElem;
 	                    flag = true;
@@ -92,6 +99,7 @@
                     self.currentPageIndex = pageIndex;
                     self.$container.find(".pagination .pageNum").eq((self.previousPage-1)).removeClass("active");
                     self.$container.find(".pagination .pageNum").eq((self.currentPageIndex-1)).addClass("active");
+
                     $.proxy(this,'refreshPagePanel')();
                 }
             },
@@ -135,7 +143,7 @@
                 }
             }
         };
-        $.fn.pagination = function(arg1,arg2){
+        $.fn.pagination1 = function(arg1,arg2){
             var results = [];
             this.each(function() {
                 var pagination = $(this).data('pagination');
@@ -161,5 +169,5 @@
             return results;
         }
         //LET OTHER ADD MOTHOD TO THE PLUGIN
-        $.fn.pagination.Constructor = Pagination;
+        $.fn.pagination1.Constructor = Pagination;
     })(window.jQuery)
